@@ -17,8 +17,18 @@ jobs:
           FRONT: ${{ secrets.FRONT_ROLE_ID }}
           BACK: ${{ secrets.BACK_ROLE_ID }}
         run: |
+          CHANNEL=$(printf '%s' "$CHANNEL" | tr -d '[:space:]')
+          FRONT=$(printf '%s' "$FRONT" | tr -d '[:space:]')
+          BACK=$(printf '%s' "$BACK" | tr -d '[:space:]')
+          TOKEN=$(printf '%s' "$TOKEN" | tr -d '[:space:]')
+
+          echo "URL: https://discord.com/api/v10/channels/$CHANNEL/messages"
+          echo "FRONT length=${#FRONT}, BACK length=${#BACK}"
+
+          content=$(printf '<@&%s> <@&%s>\n📝 **데일리 스크럼 작성 시간입니다!**\n오늘 완료한 작업 / 계획한 작업 / 장애 요소 / 추가 논의 사항을 공유해 주세요.' "$FRONT" "$BACK")
+
           payload=$(jq -n \
-            --arg content $'<@&'"$FRONT"'> <@&'"$BACK"'>\n📝 **데일리 스크럼 작성 시간입니다!**\n오늘 완료한 작업 / 계획한 작업 / 장애 요소 / 추가 논의 사항을 공유해 주세요.' \
+            --arg content "$content" \
             --arg f "$FRONT" \
             --arg b "$BACK" \
             '{content: $content, allowed_mentions: {roles: [$f, $b]}}')
