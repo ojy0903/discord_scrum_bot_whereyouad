@@ -1,1 +1,0 @@
-# discord_scurm_bot_whereyouad
