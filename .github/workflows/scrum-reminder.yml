@@ -12,30 +12,43 @@ jobs:
     steps:
       - name: Send scrum reminder
         env:
-          TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          CHANNEL: ${{ secrets.CHANNEL_ID }}
-          FRONT: ${{ secrets.FRONT_ROLE_ID }}
-          BACK: ${{ secrets.BACK_ROLE_ID }}
+          BOT_ENV: ${{ secrets.DISCORD_BOT_SECRET }}
         run: |
-          CHANNEL=$(printf '%s' "$CHANNEL" | tr -d '[:space:]')
-          FRONT=$(printf '%s' "$FRONT" | tr -d '[:space:]')
-          BACK=$(printf '%s' "$BACK" | tr -d '[:space:]')
-          TOKEN=$(printf '%s' "$TOKEN" | tr -d '[:space:]')
+          if [ -z "$BOT_ENV" ]; then
+            echo "Secret DISCORD_BOT_SECRET is empty or not set"
+            exit 1
+          fi
 
-          echo "URL: https://discord.com/api/v10/channels/$CHANNEL/messages"
-          echo "FRONT length=${#FRONT}, BACK length=${#BACK}"
+          extract() {
+            printf '%s\n' "$BOT_ENV" | grep -E "^$1=" | head -1 | cut -d= -f2- | tr -d '[:space:]'
+          }
 
-          content=$(printf '<@&%s> <@&%s>\n📝 **데일리 스크럼 작성 시간입니다!**\n오늘 완료한 작업 / 계획한 작업 / 장애 요소 / 추가 논의 사항을 공유해 주세요.' "$FRONT" "$BACK")
+          DISCORD_TOKEN=$(extract DISCORD_TOKEN)
+          CHANNEL_ID=$(extract CHANNEL_ID)
+          FRONT_ROLE_ID=$(extract FRONT_ROLE_ID)
+          BACK_ROLE_ID=$(extract BACK_ROLE_ID)
+
+          for var in DISCORD_TOKEN CHANNEL_ID FRONT_ROLE_ID BACK_ROLE_ID; do
+            if [ -z "${!var}" ]; then
+              echo "Missing $var in BOT_ENV secret"
+              exit 1
+            fi
+          done
+
+          echo "URL: https://discord.com/api/v10/channels/$CHANNEL_ID/messages"
+          echo "FRONT length=${#FRONT_ROLE_ID}, BACK length=${#BACK_ROLE_ID}"
+
+          content=$(printf '<@&%s> <@&%s>\n📝 **데일리 스크럼 작성 시간입니다!**\n오늘 완료한 작업 / 계획한 작업 / 장애 요소 / 추가 논의 사항을 공유해 주세요.' "$FRONT_ROLE_ID" "$BACK_ROLE_ID")
 
           payload=$(jq -n \
             --arg content "$content" \
-            --arg f "$FRONT" \
-            --arg b "$BACK" \
+            --arg f "$FRONT_ROLE_ID" \
+            --arg b "$BACK_ROLE_ID" \
             '{content: $content, allowed_mentions: {roles: [$f, $b]}}')
 
           response=$(curl -sS -w "\n%{http_code}" -X POST \
-            "https://discord.com/api/v10/channels/$CHANNEL/messages" \
-            -H "Authorization: Bot $TOKEN" \
+            "https://discord.com/api/v10/channels/$CHANNEL_ID/messages" \
+            -H "Authorization: Bot $DISCORD_TOKEN" \
             -H "Content-Type: application/json" \
             -d "$payload")
 
