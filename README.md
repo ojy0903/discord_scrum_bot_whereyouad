@@ -1,16 +1,18 @@
 # Discord 데일리 스크럼 알림봇
 
-매주 정해진 요일·시간에 디스코드 채널로 데일리 스크럼 작성 알림을 자동 전송하는 봇입니다. 별도의 서버 없이 **GitHub Actions의 cron 스케줄**만으로 동작합니다.
+매주 정해진 요일·시간에 디스코드 채널로 데일리 스크럼 작성 알림을 자동 전송하는 봇입니다. 별도의 서버 없이 **외부 cron 서비스(cron-job.org) + GitHub Actions** 조합으로 동작합니다.
 
 ## 하는 일
 
-- 매주 **월요일, 목요일 19:00 KST(10:00 UTC)** 에 지정된 디스코드 채널로 알림 메시지를 전송합니다.
+- 매주 **월요일, 목요일 18:53 KST(09:53 UTC)** 에 지정된 디스코드 채널로 알림 메시지를 전송합니다.
 - 메시지에서 **프론트엔드 / 백엔드 역할(role)** 을 멘션해 해당 팀원들에게만 알림이 가도록 합니다.
 - 알림 내용: 오늘 완료한 작업 / 계획한 작업 / 장애 요소 / 추가 논의 사항 공유 요청.
 
 ## 동작 방식
 
-1. `.github/workflows/scrum-reminder.yml` 워크플로우가 cron(`0 10 * * 1,4`) 으로 트리거됩니다. 필요 시 GitHub Actions의 **Run workflow** 버튼(`workflow_dispatch`)으로 수동 실행도 가능합니다.
+1. 외부 cron 서비스([cron-job.org](https://cron-job.org))가 정해진 시각에 GitHub API의 `repository_dispatch` 엔드포인트를 호출해 `scrum-reminder` 이벤트를 발생시킵니다.
+   - GitHub Actions 내장 `schedule` cron 은 지연·스킵이 잦아 비활성화(주석 처리) 되어 있고, 외부 트리거를 메인 경로로 사용합니다.
+   - 필요 시 GitHub Actions의 **Run workflow** 버튼(`workflow_dispatch`)으로 수동 실행도 가능합니다.
 2. GitHub Secret `DISCORD_BOT_SECRET` 한 덩어리(.env 형식)에서 다음 값을 추출합니다.
    - `DISCORD_TOKEN` — 디스코드 봇 토큰
    - `CHANNEL_ID` — 알림을 보낼 채널 ID
@@ -38,4 +40,6 @@ BACK_ROLE_ID=back-역할-ID
 
 ## 알림 주기 변경
 
-`.github/workflows/scrum-reminder.yml` 의 cron 식을 수정합니다. cron 은 **UTC 기준**이므로 KST 로는 9시간을 더해 환산해야 합니다.
+알림 시각은 외부 cron 서비스(cron-job.org) 측에서 관리합니다. 해당 서비스 대시보드에서 호출 시각을 수정하세요.
+
+GitHub Actions 내장 schedule 로 폴백하려면 `.github/workflows/scrum-reminder.yml` 에 주석 처리된 `cron` 라인을 다시 활성화하면 됩니다. cron 은 **UTC 기준**이므로 KST 로는 9시간을 더해 환산해야 합니다.
