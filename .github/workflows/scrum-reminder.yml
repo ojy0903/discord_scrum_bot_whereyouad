@@ -4,10 +4,10 @@ on:
   # 외부 cron 서비스(cron-job.org)에서 호출하는 메인 트리거
   repository_dispatch:
     types: [scrum-reminder]
-  schedule:
-    # 매주 월(1), 목(4) 18:53 KST = 09:53 UTC
-    # 깃허브 Actions cron 불안정으로 인한 비활성화
-    # - cron: "53 9 * * 1,4"
+  #schedule:
+  # 매주 월(1), 목(4) 18:53 KST = 09:53 UTC
+  # 깃허브 Actions cron 불안정으로 인한 비활성화
+  # - cron: "53 9 * * 1,4"
   workflow_dispatch:
 
 jobs:
