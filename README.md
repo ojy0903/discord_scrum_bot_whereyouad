@@ -12,7 +12,7 @@
 
 1. 외부 cron 서비스([cron-job.org](https://cron-job.org))가 정해진 시각에 GitHub API의 `repository_dispatch` 엔드포인트를 호출해 `scrum-reminder` 이벤트를 발생시킵니다.
    - GitHub Actions 내장 `schedule` cron 은 지연·스킵이 잦아 비활성화(주석 처리) 되어 있고, 외부 트리거를 메인 경로로 사용합니다.
-   - 필요 시 GitHub Actions의 **Run workflow** 버튼(`workflow_dispatch`)으로 수동 실행도 가능합니다.
+   - 필요 시 GitHub Actions의 Run workflow 버튼(`workflow_dispatch`)으로 수동 실행도 가능합니다.
 2. GitHub Secret `DISCORD_BOT_SECRET` 한 덩어리(.env 형식)에서 다음 값을 추출합니다.
    - `DISCORD_TOKEN` — 디스코드 봇 토큰
    - `CHANNEL_ID` — 알림을 보낼 채널 ID
